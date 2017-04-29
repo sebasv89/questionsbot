@@ -11,25 +11,24 @@ var botConnectorOptions = {
 var connector = new builder.ChatConnector(botConnectorOptions);
 var bot = new builder.UniversalBot(connector);
 
-bot.dialog('/', [
+
+// Create LUIS recognizer that points at our model and add it as the root '/' dialog for our Cortana Bot.
+var model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/a90971ea-8f13-44a6-b668-4eae2a143fe1?subscription-key=68603617abd246748298dd82c031dde2&timezoneOffset=0&verbose=true&q=';
+var recognizer = new builder.LuisRecognizer(model);
+var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
+bot.dialog('/', dialog);
+
+dialog.matches("AskQuestionWithSkillActivity", [
     function (session, args, next) {
-        if (!session.userData.name) {
-            session.beginDialog('/profile');
-        } else {
-            next();
-        }
-    },
-    function (session, results) {
-        session.send('Hello %s!', session.userData.name);
+        var questionTopic = builder.EntityRecognizer.findEntity(args.entities, 'QuestionTopic');
+        session.send('You are asking a question about %s!', questionTopic.entity);
+        session.endDialog();
     }
 ]);
 
-bot.dialog('/profile', [
-    function (session) {
-        builder.Prompts.text(session, 'Hi! What is your name?');
-    },
-    function (session, results) {
-        session.userData.name = results.response;
+dialog.matches("None", [
+    function (session, args, next) {
+        session.send("I don't know what you meant.");
         session.endDialog();
     }
 ]);
