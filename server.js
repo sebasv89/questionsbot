@@ -11,11 +11,28 @@ var botConnectorOptions = {
 var connector = new builder.ChatConnector(botConnectorOptions);
 var bot = new builder.UniversalBot(connector);
 
-bot.dialog('/', function (session) {
-    
-    //respond with user's message
-    session.send("You said " + session.message.text + ", and I love that!");
-});
+bot.dialog('/', [
+    function (session, args, next) {
+        if (!session.userData.name) {
+            session.beginDialog('/profile');
+        } else {
+            next();
+        }
+    },
+    function (session, results) {
+        session.send('Hello %s!', session.userData.name);
+    }
+]);
+
+bot.dialog('/profile', [
+    function (session) {
+        builder.Prompts.text(session, 'Hi! What is your name?');
+    },
+    function (session, results) {
+        session.userData.name = results.response;
+        session.endDialog();
+    }
+]);
 
 // Setup Restify Server
 var server = restify.createServer();
