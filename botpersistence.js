@@ -1,7 +1,6 @@
 var Connection = require('tedious').Connection;
 var Request = require('tedious').Request;
 
-
 // Create connection to database
 var config = {
     userName: process.env.BOTDATABASE_USERNAME,
@@ -21,7 +20,7 @@ function updateUserAddress(session) {
         }
         else {
             var deleteRequest = new Request(
-                "DELETE FROM dbo.userid_address WHERE userid='" + session.userData.emailAddress + "'",
+                "DELETE FROM dbo.userid_address WHERE userid LIKE '%" + session.userData.emailAddress + "%'",
                 function (err, rowCount, rows) {
                     console.log(rowCount + ' row(s) deleted');
                     insertRequest = new Request(
@@ -31,7 +30,7 @@ function updateUserAddress(session) {
                             connection.close();
                         }
                     );
-                    connection.execSql(insertRequest);        
+                    connection.execSql(insertRequest);
                 }
             );
             connection.execSql(deleteRequest);
@@ -40,4 +39,31 @@ function updateUserAddress(session) {
 
 }
 
+
+function getAddressForUserId(userId, callback, params) {
+    var connection = new Connection(config);
+    var addressToReturn;
+    connection.on('connect', function (err) {
+        if (err) {
+            console.log(err)
+        } else {
+            selectRequest = new Request(
+                "SELECT TOP 1 address FROM dbo.userid_address WHERE userId LIKE '%" + userId + "%';",
+                function (err, rowCount, rows) {
+                    console.log(rows);
+                }
+            );
+            connection.execSql(selectRequest);
+            selectRequest.on('row', function(columns) {
+                var address = columns[0].value;
+                callback(address, params);
+            });
+        }
+
+    });
+    
+    return addressToReturn;
+}
+
 exports.updateUserAddress = updateUserAddress;
+exports.getAddressForUserId = getAddressForUserId;
