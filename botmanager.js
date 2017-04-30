@@ -1,6 +1,8 @@
 var restify = require('restify');
 var builder = require('botbuilder');
-var peoplefinder = require('./peoplefinder');
+
+var sessiondatapersistence = require('./sessiondatapersistence');
+var dialogs = require('./dialogs');
 
 function start() {
 
@@ -14,32 +16,8 @@ function start() {
     var connector = new builder.ChatConnector(botConnectorOptions);
     var bot = new builder.UniversalBot(connector);
 
+    dialogs.loadDialogsForBot(bot);
 
-    // Create LUIS recognizer that points at our model and add it as the root '/' dialog for our Cortana Bot.
-    var model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/a90971ea-8f13-44a6-b668-4eae2a143fe1?subscription-key=68603617abd246748298dd82c031dde2&timezoneOffset=0&verbose=true&q=';
-    var recognizer = new builder.LuisRecognizer(model);
-    var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
-    bot.dialog('/', dialog);
-
-    dialog.matches("AskQuestionWithSkillActivity", [
-        function (session, args, next) {
-            var questionTopic = builder.EntityRecognizer.findEntity(args.entities, 'QuestionTopic');
-            session.send('You are asking a question about %s!', questionTopic.entity);
-            var numberOfPeopleWithSkill = peoplefinder.findPeopleForSkill(questionTopic.entity);
-            session.send('There are %d people who know %s. I am asking them your question.', numberOfPeopleWithSkill, questionTopic.entity);
-
-            session.send("userId= " + args.userId + ", address=" + JSON.stringify(session.message.address));
-
-            session.endDialog();
-        }
-    ]);
-
-    dialog.matches("None", [
-        function (session, args, next) {
-            session.send("I don't know what you meant.");
-            session.endDialog();
-        }
-    ]);
 
     // Setup Restify Server
     var server = restify.createServer();
