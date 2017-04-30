@@ -1,6 +1,7 @@
 var restify = require('restify');
 var builder = require('botbuilder');
 var peoplefinder = require('./peoplefinder');
+var botpersistence = require('./botpersistence');
 
 function loadDialogsForBot(bot) {
 
@@ -16,10 +17,13 @@ function buildNLPDialog() {
     var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
     dialog.matches("AskQuestionWithSkillActivity", [
         function (session, args, next) {
+            
             if (session.userData.emailAddress == undefined || session.userData.emailAddress === null){
                 session.beginDialog('/askUserBasicData');
                 return;
-            }    
+            }
+            botpersistence.updateUserAddress(session);
+
             var questionTopic = builder.EntityRecognizer.findEntity(args.entities, 'QuestionTopic');
             session.send('Thanks ' + session.userData.emailAddress + '!, You are asking a question about %s!', questionTopic.entity);
             var numberOfPeopleWithSkill = peoplefinder.findPeopleForSkill(questionTopic.entity);
@@ -35,7 +39,7 @@ function buildNLPDialog() {
     
             if (session.userData.emailAddress == undefined || session.userData.emailAddress === null){
                 session.beginDialog('/askUserBasicData');
-            }    
+            }
             session.send("I don't know what you meant.");
             session.endDialog();
         }
@@ -55,10 +59,5 @@ function buildAskUserBasicDataDialog() {
         }
     ];
 }
-
-
-
-
-
 
 exports.loadDialogsForBot = loadDialogsForBot;

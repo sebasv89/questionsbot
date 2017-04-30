@@ -1,26 +1,18 @@
 {
-  "name": "echobot",
+  "name": "pslquestionsbot",
   "version": "1.0.0",
-  "description": "A sample bot for getting started with Bot Framework",
+  "description": "Bot that connects people for solving question of each other",
   "main": "server.js",
   "scripts": {
     "test": ""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/fuselabs/echobot.git"
-  },
   "keywords": [
-    "botframework"
+    "pslquestionsbot"
   ],
-  "author": "Fuse Labs",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/fuselabs/echobot/issues"
-  },
-  "homepage": "https://github.com/fuselabs/echobot#readme",
+  "author": "Sebastian Velez",
   "dependencies": {
     "botbuilder": "^3.6.0",
-    "restify": "^4.3.0"
+    "restify": "^4.3.0",
+    "tedious": "^2.0.0"
   }
 }

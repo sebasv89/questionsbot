@@ -1,19 +1,19 @@
 [
   {
     "name":"Sebastian Velez",
-    "skypeId":"sebasv89.work",
+    "userId":"svelezr",
     "java" : 1,
     "ruby" : 0
   },
   {
     "name":"Lia Sanchez",
-    "skypeId":"liapsl",
+    "userId":"lsanchez",
     "java" : 0,
     "ruby" : 1
   },
   {
     "name":"Teresita",
-    "skypeId":"tere",
+    "userId":"teresita",
     "java" : 1,
     "ruby" : 1
   }
