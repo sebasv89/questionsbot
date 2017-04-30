@@ -40,7 +40,7 @@ function updateUserAddress(session) {
 }
 
 
-function getAddressForUserId(userId, callback, params) {
+function getAddressForUserId(userId, params, callback) {
     var connection = new Connection(config);
     var addressToReturn;
     connection.on('connect', function (err) {

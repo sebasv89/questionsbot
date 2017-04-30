@@ -6,8 +6,10 @@ var questionmanager = require('./questionmanager');
 
 function loadDialogsForBot(bot) {
     bot.dialog('/', buildLUISDialog(bot));
-    bot.dialog('/askUserBasicData', buildAskUserBasicDataDialog());
-    bot.dialog('/askQuestionToExpert', buildAskQuestionToExpertDialog());
+    bot.dialog('/askUserBasicData', buildAskUserBasicDataDialog(bot));
+    bot.dialog('/askQuestionToExpert', buildAskQuestionToExpertDialog(bot));
+    bot.dialog('/gotAnAnswer', buildGotAnAnswerDialog(bot));
+    
 }
 
 function buildLUISDialog(bot) {
@@ -40,8 +42,8 @@ function buildLUISDialog(bot) {
         },
         function (session, args, next) {
             session.send("OK. I'm sending your question right now... Please wait for some moments, I will let you know once I get some answers...");
-            session.endDialog();
             questionmanager.askAndAnswerQuestion(bot, session.userData.emailAddress, session.message.text,session.userData.questionTopic, session.userData.peopleWithSkill);
+            session.endDialog();
         }
     ]);
 
@@ -71,25 +73,45 @@ function buildAskUserBasicDataDialog() {
     ];
 }
 
-function buildAskQuestionToExpertDialog() {
+function buildAskQuestionToExpertDialog(bot) {
     return [
         function (session, args) {
+            session.userData.questionToSolve = args.question;
+            session.userData.topic = args.topic;
+            session.userData.originEmailAddress = args.originEmailAddress;
+
             session.send("Hey! " + args.originEmailAddress + " has a question about " + args.topic + " and we think you can help him.");
             builder.Prompts.confirm(session, 'Do you have one min?');
-            session.dialogData.question = args.question;
-            session.dialogData.topic = args.topic;
-            session.dialogData.originEmailAddress = args.originEmailAddress;
+            
         },
         function (session, results) {
-            // TODO - we can do this better ;)
             if (results.response === true){
-                session.send("Great! This is the question:");
-                session.send(session.dialogData.question);
-                session.endDialog();
+                session.send("Great! This is the question: " + session.userData.questionToSolve);
+                builder.Prompts.text(session, 'If you wanna answer, go ahead. just write it down and I will pass it. You can also tell me "I wanna talk" and I will pass the information to the guy');
             } else {
                 session.endDialog("Not a problem. Thanks!");
             }
+        },
+        function (session, results){
+            if (results.response === "I wanna talk"){
+                session.endDialog("Ok. I will let him know to look for you. Thanks!");
+            } else {
+                var answer = results.response;
+                session.endDialog("Thanks for answering! I will send the info right now. See you!");
+                questionmanager.sendAnswer(answer, session.userData.originEmailAddress, session.userData.emailAddress, bot);
+            }
         }
+    ];
+}
+
+function buildGotAnAnswerDialog() {
+    return [
+        function (session, args) {
+            session.send("Got an answer from " + args.responseEmailAddress + "!");
+            session.send("This is it: " + args.answer);
+            session.endDialog("I would let you know if more people answer!");
+        }
+        
     ];
 }
 
