@@ -9,6 +9,7 @@ function loadDialogsForBot(bot) {
     bot.dialog('/askUserBasicData', buildAskUserBasicDataDialog(bot));
     bot.dialog('/askQuestionToExpert', buildAskQuestionToExpertDialog(bot));
     bot.dialog('/gotAnAnswer', buildGotAnAnswerDialog(bot));
+    bot.dialog('/tryAgain', buildTryAgainDialog(bot));
     
 }
 
@@ -22,6 +23,12 @@ function buildLUISDialog(bot) {
             performInitialDialogActions(session);
 
             var questionTopic = builder.EntityRecognizer.findEntity(args.entities, 'QuestionTopic');
+
+            if (questionTopic === null || questionTopic.entity === null){
+                session.replaceDialog("/tryAgain");
+                return;
+            }
+
             var peopleWithSkill = peopleskillsfinder.findPeopleWithSkill(questionTopic.entity);
             
             // TODO - this should be dialogData but it seems there is a bug
@@ -47,17 +54,7 @@ function buildLUISDialog(bot) {
         }
     ]);
 
-    dialog.matches("None", [
-        function (session, args, next) {
-    
-            if (session.userData.emailAddress == undefined || session.userData.emailAddress === null){
-                session.beginDialog('/askUserBasicData');
-            }
-            session.send("I don't know what you meant.");
-            session.endDialog();
-        }
-    ]);
-
+    dialog.matches("None", "/tryAgain");
     return dialog;
 }
 
@@ -112,6 +109,19 @@ function buildGotAnAnswerDialog() {
             session.endDialog("I would let you know if more people answer!");
         }
         
+    ];
+}
+
+function buildTryAgainDialog(){
+    return [
+        function (session, args, next) {
+    
+            if (session.userData.emailAddress == undefined || session.userData.emailAddress === null){
+                session.beginDialog('/askUserBasicData');
+            }
+            session.send("I don't know what you meant.");
+            session.endDialog();
+        }
     ];
 }
 
